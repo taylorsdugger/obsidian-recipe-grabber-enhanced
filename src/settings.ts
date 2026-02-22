@@ -11,6 +11,7 @@ export interface PluginSettings {
   recipeTemplate: string;
   decodeEntities: boolean;
   debug: boolean;
+  shoppingListFile: string;
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -22,6 +23,7 @@ export const DEFAULT_SETTINGS: PluginSettings = {
   recipeTemplate: c.DEFAULT_TEMPLATE,
   decodeEntities: true,
   debug: false,
+  shoppingListFile: "Shopping List.md",
 };
 
 export class SettingsTab extends PluginSettingTab {
@@ -158,6 +160,22 @@ export class SettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.decodeEntities)
           .onChange(async (value) => {
             this.plugin.settings.decodeEntities = value;
+            await this.plugin.saveSettings();
+          });
+      });
+
+    new Setting(containerEl)
+      .setName("Shopping list file")
+      .setDesc(
+        "Path to the file where checked ingredients are sent when using 'Add checked ingredients to shopping list'. Will be created if it doesn't exist.",
+      )
+      .addText((text) => {
+        text
+          .setPlaceholder("eg: Shopping List.md")
+          .setValue(this.plugin.settings.shoppingListFile)
+          .onChange(async (value) => {
+            this.plugin.settings.shoppingListFile =
+              value.trim() || "Shopping List.md";
             await this.plugin.saveSettings();
           });
       });
