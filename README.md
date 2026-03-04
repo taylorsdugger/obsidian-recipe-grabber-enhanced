@@ -23,6 +23,18 @@ Releases are fully automated via GitHub Actions. To cut a new release:
 
 ---
 
+### Manually Adding a Recipe
+
+Use the **New recipe stub** command (accessible via the command palette) to create a blank recipe note without fetching a URL.
+
+1. Open the command palette and run **Recipe Grabber: New recipe stub**.
+2. Enter a name for your recipe and press **Enter** or click **Create Recipe**.
+3. A new note is created in your configured recipe folder, pre-filled with the same template as auto-grabbed recipes.
+4. The note includes `source: manual` in its frontmatter so you can distinguish it from imported recipes.
+5. If a note with that name already exists, the new file is saved as **Name (2)**, **Name (3)**, and so on.
+
+---
+
 ### Frontmatter Issues
 
 [Obsidian 1.4.6](https://obsidian.md/changelog/2023-08-31-desktop-v1.4.6/) changed the frontmatter behaviour.

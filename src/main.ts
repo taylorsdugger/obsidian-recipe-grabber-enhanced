@@ -813,18 +813,37 @@ export default class RecipeGrabber extends Plugin {
       md = textArea.value;
     }
 
+    // Inject source: manual into the frontmatter block
+    if (md.startsWith("---")) {
+      const endFm = md.indexOf("\n---", 3);
+      if (endFm !== -1) {
+        md = md.slice(0, endFm) + "\nsource: manual" + md.slice(endFm);
+      }
+    } else {
+      md = "---\nsource: manual\n---\n\n" + md;
+    }
+
     if (this.settings.folder !== "") {
       await this.folderCheck(this.settings.folder);
     }
 
     const safeName = name.replace(/"|\*|\\|\/|<|>|:|\?/g, "");
-    const path =
+    const basePath =
       this.settings.folder === ""
-        ? `${normalizePath(this.settings.folder)}${safeName}.md`
-        : `${normalizePath(this.settings.folder)}/${safeName}.md`;
+        ? `${normalizePath(this.settings.folder)}${safeName}`
+        : `${normalizePath(this.settings.folder)}/${safeName}`;
 
-    const file = await this.app.vault.create(path, md);
+    // Handle duplicate names by appending (2), (3), etc.
+    let finalPath = `${basePath}.md`;
+    let counter = 2;
+    while (this.app.vault.getAbstractFileByPath(finalPath)) {
+      finalPath = `${basePath} (${counter}).md`;
+      counter++;
+    }
+
+    const file = await this.app.vault.create(finalPath, md);
     await this.app.workspace.openLinkText(file.path, "", true);
+    new Notice(`Recipe created: ${file.path}`);
   };
 
   /**
