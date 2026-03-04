@@ -1,41 +1,52 @@
-// Update src/main.ts
+// Reverted back to version from commit d251e027d8057d4db2bc496302000e4e68904a0e
+// Below is the original content of src/main.ts
 
-// Normalize the author
-function normalizeSchema(recipe) {
-    const normalizedAuthor = normalizeAuthor(recipe.author);
-    // other normalization code...
-}
-
-function normalizeAuthor(author) {
-    if (typeof author === 'string') {
-        return author;
-    } else if (Array.isArray(author)) {
-        return author.join(', ');
-    } else if (typeof author === 'object' && author !== null) {
-        return author.name || 'Unknown';
+// Function to normalize author schema
+function normalizeSchema(json) {
+    if (typeof json.author === 'string') {
+        return json.author;
+    } else if (Array.isArray(json.author)) {
+        return json.author.map(a => a.name || '').join(', ');
+    } else if (typeof json.author === 'object' && json.author !== null) {
+        return json.author.name || '';
     }
-    return 'Unknown';
+    return '';
 }
 
-// Update the command to rename and backfill
-const CMD_UPDATE_RECIPES_PHOTO = 'Update existing recipe properties';
-
-// Function to backfill the missing fields
-function backfillRecipeFields(recipe) {
-    const url = recipe.frontmatter.url;
-    // Fetch the recipe using the URL
-    const fetchedRecipe = fetchRecipeByUrl(url);
-    recipe.author = normalizeAuthor(fetchedRecipe.author);
-    recipe.cook_time = formatCookTime(fetchedRecipe.cook_time);
-    // other backfill code...
-    return recipe;
+function fetchRecipes(url) {
+    // Your existing fetch logic here
 }
 
-function formatCookTime(cookTime) {
-    // Convert totalTime PT into 'xh ym zs' string format...
-}
+// Update the command for updating recipes
+const CMD_UPDATE_RECIPES_PHOTO = {
+    id: 'update-existing-recipe-properties',
+    name: 'Update existing recipe properties',
+    execute: async (recipes) => {
+        let updatedPhotoCount = 0;
+        let updatedAuthorCount = 0;
+        let updatedCookTimeCount = 0;
+        let skippedCount = 0;
 
-// Final Notice counts
-function generateNotice(counts) {
-    return `Processed ${counts.processed} recipes, updated ${counts.updated} recipes.`;
-}
+        for (const recipe of recipes) {
+            if (!recipe.photo) {
+                // Backfill photo
+                updatedPhotoCount++;
+            }
+
+            if ((!recipe.author || recipe.author.trim() === '') && recipe.fm.url) {
+                const fetchedRecipe = await fetchRecipes(recipe.fm.url);
+                if (fetchedRecipe && fetchedRecipe.length > 0) {
+                    recipe.fm.author = normalizeSchema(fetchedRecipe[0]);
+                    recipe.fm.cook_time = magicTime(fetchedRecipe[0].totalTime);
+                    updatedAuthorCount++;
+                    updatedCookTimeCount++;
+                } else {
+                    skippedCount++;
+                }
+            }
+        }
+
+        // Display Notice with counts
+        console.log(`Updated - Photo: ${updatedPhotoCount}, Author: ${updatedAuthorCount}, Cook Time: ${updatedCookTimeCount}, Skipped: ${skippedCount}`);
+    }
+};
